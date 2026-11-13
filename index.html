@@ -1,188 +1,69 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MekFix – demo</title>
-<style>
-:root{--bg:#F2F5F5;--sf:#fff;--ink:#12262D;--mu:#4B6068;--ln:#D3DDDF;--sg:#F2B705;--cta:#12343B;--cti:#fff}
-@media (prefers-color-scheme:dark){:root{--bg:#0F1C20;--sf:#172A30;--ink:#E8F0F1;--mu:#9DB2B8;--ln:#2A4048;--cta:#F2B705;--cti:#12262D}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.w{max-width:820px;margin:0 auto;padding:0 18px}
-header{border-bottom:1px solid var(--ln);padding:14px 0}
-header .w{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.brand{font-weight:800;font-size:1.2rem;display:flex;align-items:center;gap:8px}
-.mark{width:26px;height:26px;border-radius:6px;background:var(--sg);color:#12262D;display:grid;place-items:center;font-weight:800}
-nav{display:flex;gap:4px}
-.tab{background:none;color:var(--mu);border:0;border-radius:999px;padding:8px 14px;font:inherit;font-weight:600;font-size:.95rem;cursor:pointer}
-.tab[aria-current=true]{background:var(--sf);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ln)}
-.demo{background:var(--sg);color:#12262D;font-size:.9rem;font-weight:600;padding:8px 0}
-h1{font-size:clamp(1.7rem,6vw,2.5rem);line-height:1.12;letter-spacing:-.02em;margin:28px 0 12px}
-h2{font-size:1.2rem;margin:28px 0 10px}
-p{margin:0 0 12px}.mu{color:var(--mu)}.sm{font-size:.9rem}
-.card{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:16px 18px;margin:14px 0}
-label{display:block;font-weight:600;font-size:.92rem;margin:10px 0}
-input,textarea,select{width:100%;padding:10px;font:inherit;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--ink);margin-top:4px}
-.ck{display:flex;gap:10px;font-weight:400;align-items:flex-start}.ck input{width:20px;margin-top:3px}
-button.b{background:var(--cta);color:var(--cti);border:0;border-radius:8px;padding:12px 20px;font:inherit;font-weight:700;cursor:pointer;margin:4px 6px 4px 0}
-button.s{background:var(--bg);color:var(--ink);border:1px solid var(--ln);border-radius:8px;padding:6px 10px;font:inherit;font-size:.88rem;cursor:pointer}
-table{border-collapse:collapse;width:100%;font-size:.88rem}td,th{border-bottom:1px solid var(--ln);padding:6px 8px;text-align:left;vertical-align:top}
-.x{overflow-x:auto}
-.mail{display:block;width:100%;text-align:left;background:var(--sf);border:1px solid var(--ln);border-radius:8px;padding:10px 12px;margin:6px 0;font:inherit;color:inherit;cursor:pointer}
-.mail[aria-pressed=true]{border-color:var(--sg);box-shadow:inset 3px 0 0 var(--sg)}
-.note{background:var(--sf);border-left:4px solid var(--sg);padding:10px 14px;border-radius:6px;margin:12px 0}
-a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--sg);outline-offset:2px}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MekFix | Hitta verkstad snabbt</title>
+  <meta name="description" content="MekFix hjälper dig snabbt hitta en verkstad för bilen, få tidsförslag och boka service utan krångel.">
+  <style>
+    :root{--bg:#f2f5f5;--surface:#fff;--ink:#12262d;--muted:#4b6068;--line:#d3dddf;--accent:#f2b705;--cta:#12343b;--cta-text:#fff;--success:#1f7a5d;--shadow:0 18px 40px rgba(18,38,45,.08);--radius:22px;--max:1180px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font:17px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:linear-gradient(180deg,#f9fbfb 0%,var(--bg) 100%)}a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}.container{width:min(var(--max),calc(100% - 32px));margin:0 auto}
+    .site-header{position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);background:rgba(242,245,245,.88);border-bottom:1px solid var(--line)}.nav{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:78px}.brand{display:inline-flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.03em;font-size:1.2rem}.brand-mark{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:var(--accent);color:#12262d;font-weight:900}.nav-links{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.nav-links a{padding:10px 14px;border-radius:999px;color:var(--muted);font-size:.96rem;font-weight:600}.nav-links a:hover,.nav-links a:focus-visible{background:#fff;color:var(--ink);outline:none}.nav-cta{background:var(--cta);color:var(--cta-text);border-radius:12px;padding:11px 18px;font-weight:700;box-shadow:var(--shadow)}.nav-toggle{display:none;background:#fff;border:1px solid var(--line);width:46px;height:46px;border-radius:12px;font-size:1.4rem;color:var(--ink);cursor:pointer}
+    .hero{padding:66px 0 40px}.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:center}.eyebrow{display:inline-flex;background:rgba(242,183,5,.16);color:#765600;border:1px solid rgba(242,183,5,.26);border-radius:999px;padding:8px 12px;font-size:.8rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}h1{font-size:clamp(2.6rem,6vw,4.3rem);line-height:1.05;letter-spacing:-.06em;margin:18px 0 16px}.lead{font-size:1.12rem;color:var(--muted);max-width:620px;margin:0 0 26px}.hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:24px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 22px;border-radius:12px;border:1px solid transparent;font-weight:800;cursor:pointer;transition:transform .2s ease}.btn:hover,.btn:focus-visible{transform:translateY(-1px);outline:3px solid var(--accent);outline-offset:2px}.btn-primary{background:var(--cta);color:var(--cta-text);box-shadow:var(--shadow)}.btn-secondary{background:#fff;border-color:var(--line);color:var(--ink)}.proof{display:flex;gap:20px;flex-wrap:wrap;color:var(--muted);font-size:.9rem;font-weight:600}.proof span{display:inline-flex;align-items:center;gap:8px}.proof i,.status-dot{width:9px;height:9px;border-radius:50%;background:var(--success);display:inline-block}.proof i{box-shadow:0 0 0 5px rgba(31,122,93,.14)}
+    .hero-panel{background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(237,242,242,.9));border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}.panel-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.status-tag{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:rgba(31,122,93,.1);color:var(--success);font-size:.78rem;font-weight:800}.mini-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}.label{display:block;font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800;margin-bottom:8px}
+    .section{padding:48px 0}.section-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:24px;flex-wrap:wrap}h2{margin:0;font-size:clamp(2rem,4vw,2.8rem);letter-spacing:-.05em}.section-copy{color:var(--muted);max-width:640px;margin:6px 0 0}.feature-grid,.steps-grid,.shop-grid,.stats-grid{display:grid;gap:20px}.feature-grid,.steps-grid,.shop-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 28px rgba(18,38,45,.04);padding:22px}.icon{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;background:rgba(242,183,5,.18);color:#6f5400;font-size:1.5rem;margin-bottom:18px}.card h3{margin:0 0 12px;font-size:1.3rem;letter-spacing:-.03em}.card p{margin:0;color:var(--muted)}.step-number{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px;background:var(--cta);color:#fff;font-weight:800;margin-bottom:16px}.shop-card{padding:0;overflow:hidden}.shop-top{padding:20px 20px 14px}.shop-badge{display:inline-block;padding:7px 10px;background:rgba(242,183,5,.14);color:#6f5400;border-radius:999px;font-size:.74rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}.shop-card h3{font-size:1.4rem;margin:0 0 8px}.shop-location{color:var(--muted);font-weight:600;margin-bottom:10px}.shop-meta{display:flex;justify-content:space-between;gap:12px;padding:14px 20px 20px;border-top:1px solid var(--line);color:var(--muted);font-size:.94rem;font-weight:600}.stats-grid .card{text-align:center;padding:24px 18px}.stat-value{font-size:clamp(2rem,5vw,2.7rem);font-weight:900;letter-spacing:-.06em;margin-bottom:8px}.stat-label{color:var(--muted);font-weight:600;margin:0}
+    .cta-band{background:linear-gradient(135deg,var(--cta),#1a4b56);color:#f6fbfc;border-radius:28px;padding:28px 24px;display:flex;justify-content:space-between;align-items:center;gap:18px;overflow:hidden}.cta-band h3{margin:0 0 6px;font-size:clamp(1.7rem,4vw,2.4rem);letter-spacing:-.05em}.cta-band p{margin:0;color:rgba(246,251,252,.8)}.request-card{margin-top:26px}.request-card-inner{max-width:760px;margin:0 auto}.request-form{display:grid;gap:12px}.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.request-form label{display:block;font-size:.9rem;font-weight:700}.request-form input,.request-form textarea{width:100%;margin-top:6px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px 12px;color:var(--ink)}.request-form textarea{min-height:82px;resize:vertical}.check{display:flex!important;gap:10px;align-items:flex-start;font-size:.88rem!important;color:var(--muted);margin-top:2px}.check input{width:18px;height:18px;margin-top:3px;accent-color:var(--cta)}.notice{min-height:24px;color:var(--success);font-weight:700}.footer{padding:26px 0 38px;color:var(--muted);font-size:.95rem}.footer-inner{display:flex;justify-content:space-between;align-items:center;gap:16px;border-top:1px solid var(--line);padding-top:18px;flex-wrap:wrap}
+    @media(max-width:900px){.hero-grid,.feature-grid,.steps-grid,.shop-grid,.stats-grid{grid-template-columns:1fr}.section-head{align-items:flex-start}.cta-band{flex-direction:column;align-items:flex-start}}
+    @media(max-width:720px){.nav-toggle{display:inline-grid;place-items:center}.nav-links{position:absolute;left:16px;right:16px;top:77px;display:none;background:rgba(255,255,255,.98);border:1px solid var(--line);border-radius:18px;padding:12px;box-shadow:var(--shadow)}.nav-links.open{display:flex;flex-direction:column;align-items:stretch}.nav-cta{display:none}.field-row{grid-template-columns:1fr}.hero{padding-top:42px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}}
+  </style>
 </head>
 <body>
-<header><div class="w">
-  <div class="brand"><span class="mark">M</span>MekFix <span class="mu sm" style="font-weight:400">demo</span></div>
-  <nav>
-    <button class="tab" data-tab="kund">1. Bilägare</button>
-    <button class="tab" data-tab="mail">2. Mejlkorg</button>
-    <button class="tab" data-tab="admin">3. Admin</button>
-  </nav>
-</div></header>
-<div class="demo"><div class="w">DEMO: allt körs i din webbläsare. Inga riktiga mejl skickas och inga uppgifter sparas.</div></div>
-<main class="w" id="app"></main>
-
-<script>
-const OPEN='Skickad till verkstäder',PROP='Tid föreslagen',APPR='Godkänd av kund',BOOK='Tid bokad',NEWT='Ny tid begärd',FAIL='Ej bokad, ringer kunden';
-const S={tab:'kund',ws:[{id:1,name:'Demoverkstad Norr',email:'norr@demo.se',on:true},{id:2,name:'Demoverkstad Centrum',email:'centrum@demo.se',on:true},{id:3,name:'Demoverkstad Söder',email:'soder@demo.se',on:true}],
-rq:[],mail:[],n:1,open:null,pend:null,notice:'',sent:null,filter:'all',wn:4};
-const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const $=(s,r)=>(r||document).querySelector(s);
-const getR=id=>S.rq.find(r=>r.id===id);
-const getW=id=>S.ws.find(w=>w.id===id);
-const fmt=v=>v==null?'–':v.toFixed(1).replace('.',',');
-const owner='Hajar (ägare)';
-
-function send(to,subject,html){S.mail.unshift({id:S.n++,to,subject,html,t:new Date().toLocaleTimeString('sv-SE')});}
-function mins(r,t){return (t-r.created)/60000;}
-function details(r){return `<b>Bil:</b> ${esc(r.model)} · ${esc(r.reg)}<br><b>Fel:</b> ${esc(r.fault)}`;}
-function contact(r){return `<b>Namn:</b> ${esc(r.name)}<br><b>Telefon:</b> ${esc(r.phone)}<br><b>E-post:</b> ${esc(r.email)}<br>`;}
-function btn(a,r,w,label){return `<button class="b" data-a="${a}" data-r="${r}" data-w="${w||0}">${label}</button>`;}
-function wsMail(r,w,intro){send(w.name,`MekFix: akut förfrågan ${r.model}`,`<p>Hej ${esc(w.name)},</p><p>${intro}</p><p>${details(r)}</p><p>Kundens kontaktuppgifter visas när kunden godkänt tiden. Mål: föreslå tid inom 30 minuter.</p>${btn('acc',r.id,w.id,'Föreslå tid för ärendet')}`);}
-
-function submitReq(f){
-  const r={id:'A'+(S.rq.length+1),name:f.name.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim(),reg:f.reg.value.trim(),model:f.model.value.trim(),fault:f.fault.value.trim(),st:OPEN,w:null,time:null,created:Date.now(),resp:null,book:null};
-  S.rq.unshift(r);
-  const act=S.ws.filter(w=>w.on);
-  act.forEach(w=>wsMail(r,w,'En bilägare behöver hjälp med ett akut fel. Första verkstaden som föreslår en tid får ärendet.'));
-  send(owner,`Ny förfrågan ${r.id}`,`<p>${contact(r)}${details(r)}</p><p>Skickad till ${act.length} verkstäder.</p>`);
-  S.sent=r.id;S.notice='';
-}
-
-function act(a,d){
-  const r=getR(d.r),w=getW(+d.w);S.notice='';
-  if(a==='acc'){
-    if(r.st!==OPEN&&r.st!==NEWT){S.notice='Ärendet är redan taget av en annan verkstad. Tack för att ni svarade.';S.pend=null;}
-    else S.pend={r:r.id,w:w.id};
-  }
-  if(a==='propose'){
-    const t=($('#tid')||{}).value;if(!t||!t.trim())return;
-    if(r.st!==OPEN&&r.st!==NEWT){S.notice='Ärendet är redan taget av en annan verkstad.';S.pend=null;return;}
-    r.st=PROP;r.w=w.id;r.time=t.trim();if(r.resp==null)r.resp=mins(r,Date.now());S.pend=null;
-    send(r.name+' (kund)',`Bekräfta din tid hos ${w.name}`,`<p>Hej ${esc(r.name)},</p><p><b>${esc(w.name)}</b> kan ta din bil: <b>${esc(r.time)}</b>.</p>${btn('yes',r.id,w.id,'Godkänn tiden')}${btn('no',r.id,w.id,'Passar inte, begär en ny tid')}`);
-    send(owner,`${w.name} föreslog tid för ${r.id}`,`<p>Tid: ${esc(r.time)}. Väntar på kundens svar.</p>`);
-    S.notice='Tidsförslaget är skickat. Kunden har fått ett mejl.';
-  }
-  if(a==='yes'||a==='no'){
-    if(r.st!==PROP){S.notice='Det här ärendet är redan besvarat.';return;}
-    if(a==='yes'){
-      r.st=APPR;
-      send(w.name,'Kunden godkände tiden, bekräfta bokningen',`<p>Kunden godkände tiden <b>${esc(r.time)}</b>.</p><p>${contact(r)}${details(r)}</p>${btn('book',r.id,w.id,'Vi har bokat tiden')}${btn('fail',r.id,w.id,'Vi kunde inte boka')}`);
-      send(owner,`Kunden godkände ${r.id}`,`<p>${esc(w.name)}, tid ${esc(r.time)}. Väntar på verkstadens bekräftelse.</p>`);
-      S.notice='Tiden är godkänd. Verkstaden har fått ett mejl med dina uppgifter.';
-    }else{
-      r.st=NEWT;r.w=null;r.time=null;
-      S.ws.filter(x=>x.on).forEach(x=>wsMail(r,x,'Kunden kunde inte ta den föreslagna tiden. Föreslå en ny tid om ni kan ta bilen.'));
-      send(owner,`Kunden nekade tiden för ${r.id}`,'<p>Ärendet är öppet igen för nya tidsförslag.</p>');
-      S.notice='Ärendet skickades tillbaka till verkstäderna för en ny tid.';
-    }
-  }
-  if(a==='book'||a==='fail'){
-    if(r.st!==APPR){S.notice='Inget att bekräfta.';return;}
-    if(a==='book'){
-      r.st=BOOK;r.book=mins(r,Date.now());
-      send(r.name+' (kund)',`Din tid är bokad hos ${w.name}`,`<p>Hej ${esc(r.name)},</p><p>Din tid hos <b>${esc(w.name)}</b> är bokad: <b>${esc(r.time)}</b>.</p><p>Verkstaden ansvarar för reparationen.</p>`);
-      S.ws.filter(x=>x.on&&x.id!==w.id).forEach(x=>send(x.name,'Ärendet är taget',`<p>Ärende ${r.id} (${esc(r.model)}) är bokat av en annan verkstad. Tack för att ni svarade.</p>`));
-      send(owner,`Tid bokad för ${r.id}`,`<p>${esc(w.name)} bekräftade bokningen: ${esc(r.time)}.</p>`);
-      S.notice='Bokningen är registrerad. Kunden har fått ett bekräftelsemejl.';
-    }else{
-      r.st=FAIL;send(owner,`${w.name} kunde inte boka ${r.id}`,`<p>Ring kunden: ${esc(r.name)}, ${esc(r.phone)}.</p>`);
-      S.notice='Du har meddelat MekFix att ni inte kunde boka.';
-    }
-  }
-}
-
-function viewKund(){
-  const sent=S.sent?`<div class="card"><b>Tack, din förfrågan är skickad.</b><p class="mu">I den riktiga tjänsten får du ett mejl så snart en verkstad föreslår en tid. I demon hittar du mejlen i mejlkorgen.</p><button class="b" data-tab="mail">Öppna mejlkorgen</button></div>`:'';
-  return `<h1>Bilen krånglar? Vi hittar en verkstad som kan ta den.</h1>
-  <p class="mu">Berätta vad som är fel. Din förfrågan skickas till verkstäder i Gävle och Sandviken, och första verkstaden som kan ta bilen föreslår en tid åt dig.</p>
-  <div class="note sm"><b>Så använder du demon:</b> fyll i formuläret, gå till fliken Mejlkorg och klicka dig igenom flödet som kund och som verkstad. Admin visar verkstäder och statistik.</div>${sent}
-  <form id="kf" class="card"><h2 style="margin-top:0">Skicka förfrågan</h2>
-  <label>Namn<input name="name" required></label><label>Telefon<input name="phone" type="tel" required></label>
-  <label>E-post<input name="email" type="email" required></label><label>Registreringsnummer<input name="reg" required></label>
-  <label>Bilmodell<input name="model" required></label><label>Vad är fel med bilen?<textarea name="fault" rows="3" required></textarea></label>
-  <label class="ck"><input type="checkbox" name="consent" required><span>Jag godkänner att mina uppgifter skickas till verkstäder i området för att få en tid.</span></label>
-  <label class="ck"><input type="checkbox" name="save"><span>Jag vill att MekFix sparar mina uppgifter så att jag slipper fylla i dem igen (valfritt).</span></label>
-  <button class="b" type="submit">Skicka förfrågan</button><button class="s" type="button" data-fill="1">Fyll i exempel</button></form>`;
-}
-
-function viewMail(){
-  const tos=[...new Set(S.mail.map(m=>m.to))];
-  const list=S.mail.filter(m=>S.filter==='all'||m.to===S.filter);
-  const cur=S.mail.find(m=>m.id===S.open);
-  const pend=S.pend&&cur&&cur.html.includes(`data-r="${S.pend.r}" data-w="${S.pend.w}"`)?`<div class="card"><label>Tid ni kan ta bilen<input id="tid" placeholder="till exempel tis 10 nov kl 14:00"></label>${btn('propose',S.pend.r,S.pend.w,'Skicka tidsförslag')}</div>`:'';
-  return `<h1>Mejlkorg</h1><p class="mu">Här ser du alla mejl som tjänsten skickar, till kunden, verkstäderna och dig. Knapparna i mejlen är länkarna i den riktiga tjänsten.</p>
-  <label>Visa mejl till<select id="flt"><option value="all">Alla</option>${tos.map(t=>`<option ${S.filter===t?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
-  ${S.notice?`<div class="note">${esc(S.notice)}</div>`:''}
-  ${S.mail.length?'':'<div class="card mu">Inga mejl ännu. Skicka en förfrågan under Bilägare.</div>'}
-  ${list.map(m=>`<button class="mail" data-open="${m.id}" aria-pressed="${m.id===S.open}"><b>Till: ${esc(m.to)}</b> · ${esc(m.t)}<br>${esc(m.subject)}</button>`).join('')}
-  ${cur?`<div class="card"><p class="mu sm">Till: ${esc(cur.to)}<br>Ämne: ${esc(cur.subject)}</p>${cur.html}</div>${pend}`:''}`;
-}
-
-function viewAdmin(){
-  const R=S.rq,prop=R.filter(r=>[PROP,APPR,BOOK].includes(r.st)).length,ap=R.filter(r=>[APPR,BOOK].includes(r.st)).length,bk=R.filter(r=>r.st===BOOK).length;
-  const rs=R.filter(r=>r.resp!=null).map(r=>r.resp),bs=R.filter(r=>r.book!=null).map(r=>r.book);
-  const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
-  const w30=rs.length?Math.round(rs.filter(v=>v<=30).length/rs.length*100)+' %':'–';
-  return `<h1>Admin</h1><h2>Statistik</h2><div class="card"><table>
-  <tr><td>Förfrågningar totalt</td><td>${R.length}</td></tr><tr><td>Fått tidsförslag</td><td>${prop}</td></tr><tr><td>Kund godkände</td><td>${ap}</td></tr><tr><td>Tid bokad</td><td>${bk}</td></tr>
-  <tr><td>Snitt svarstid för verkstad (min)</td><td>${fmt(avg(rs))}</td></tr><tr><td>Andel förslag inom 30 min</td><td>${w30}</td></tr><tr><td>Snitt tid till bokning (min)</td><td>${fmt(avg(bs))}</td></tr></table>
-  <p class="mu sm" style="margin:10px 0 0">I demon är tiderna verkliga sekunder omräknade till minuter.</p></div>
-  <h2>Partnerverkstäder</h2><div class="card x"><table><tr><th>Namn</th><th>E-post</th><th>Status</th><th></th></tr>
-  ${S.ws.map(w=>`<tr><td>${esc(w.name)}</td><td>${esc(w.email)}</td><td>${w.on?'Aktiv':'Av'}</td><td><button class="s" data-tog="${w.id}">${w.on?'Stäng av':'Slå på'}</button> <button class="s" data-del="${w.id}">Ta bort</button></td></tr>`).join('')}</table>
-  <form id="wf"><label>Verkstadens namn<input name="name" required></label><label>Verkstadens e-post<input name="email" type="email" required></label><button class="b" type="submit">Lägg till verkstad</button></form></div>
-  <h2>Förfrågningar</h2><div class="card x"><table><tr><th>ID</th><th>Status</th><th>Kund</th><th>Bil och fel</th><th>Verkstad och tid</th></tr>
-  ${R.map(r=>`<tr><td>${r.id}</td><td>${esc(r.st)}</td><td>${esc(r.name)}<br>${esc(r.phone)}</td><td>${esc(r.model)} · ${esc(r.reg)}<br>${esc(r.fault)}</td><td>${r.w?esc(getW(r.w)?getW(r.w).name:''):'–'}<br>${esc(r.time||'')}</td></tr>`).join('')||'<tr><td colspan="5">Inga förfrågningar ännu.</td></tr>'}</table></div>`;
-}
-
-function render(){
-  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-current',String(b.dataset.tab===S.tab)));
-  $('#app').innerHTML=S.tab==='kund'?viewKund():S.tab==='mail'?viewMail():viewAdmin();
-}
-
-document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-tab],[data-a],[data-open],[data-tog],[data-del],[data-fill]');if(!t)return;
-  if(t.dataset.tab){S.tab=t.dataset.tab;S.notice='';}
-  else if(t.dataset.open){S.open=+t.dataset.open;S.pend=null;S.notice='';}
-  else if(t.dataset.a){act(t.dataset.a,t.dataset);}
-  else if(t.dataset.tog){const w=getW(+t.dataset.tog);w.on=!w.on;}
-  else if(t.dataset.del){S.ws=S.ws.filter(w=>w.id!==+t.dataset.del);}
-  else if(t.dataset.fill){const f=$('#kf');f.name.value='Anna Andersson';f.phone.value='070-000 00 00';f.email.value='anna@exempel.se';f.reg.value='ABC123';f.model.value='Volvo V70 2012';f.fault.value='Bilen startar inte och batterilampan lyser.';f.consent.checked=true;return;}
-  render();
-});
-document.addEventListener('submit',e=>{
-  e.preventDefault();const f=e.target;
-  if(f.id==='kf'){submitReq(f);}
-  if(f.id==='wf'){S.ws.push({id:S.wn++,name:f.name.value.trim(),email:f.email.value.trim(),on:true});}
-  render();
-});
-document.addEventListener('change',e=>{if(e.target.id==='flt'){S.filter=e.target.value;render();}});
-render();
-</script>
+  <header class="site-header"><div class="container nav">
+    <a href="#top" class="brand" aria-label="MekFix startsida"><span class="brand-mark">M</span><span>MekFix</span></a>
+    <nav class="nav-links" id="nav-links" aria-label="Huvudmeny"><a href="#tjanster">Tjänster</a><a href="#process">Hur det fungerar</a><a href="#verkstader">Verkstäder</a><a href="#kontakt">Kontakt</a></nav>
+    <a href="#kontakt" class="nav-cta">Skicka förfrågan</a>
+    <button class="nav-toggle" type="button" aria-label="Öppna menyn" aria-expanded="false" data-menu-toggle>☰</button>
+  </div></header>
+  <main id="top">
+    <section class="hero"><div class="container hero-grid"><div>
+      <div class="eyebrow">Snabb hjälp för din bil</div>
+      <h1>Hitta en verkstad som kan ta din bil.</h1>
+      <p class="lead">Berätta vad som är fel. MekFix skickar din förfrågan till lokala verkstäder i Gävle och Sandviken så att du snabbt kan få ett tidsförslag.</p>
+      <div class="hero-actions"><a href="#form" class="btn btn-primary">Hitta en verkstad</a><a href="#process" class="btn btn-secondary">Se hur det fungerar</a></div>
+      <div class="proof"><span><i></i> Enkelt att komma igång</span><span><i></i> Lokala verkstäder</span><span><i></i> Ingen kostnad att fråga</span></div>
+    </div><aside class="hero-panel" aria-label="Så hjälper MekFix"><div class="panel-header"><strong>Din förfrågan</strong><span class="status-tag"><span class="status-dot"></span>Redo att skickas</span></div>
+      <div class="mini-card"><span class="label">1 · Berätta</span><strong>Beskriv bilens fel och dela dina kontaktuppgifter.</strong></div>
+      <div class="mini-card"><span class="label">2 · Matcha</span><strong>Din förfrågan skickas till aktiva verkstäder i området.</strong></div>
+      <div class="mini-card"><span class="label">3 · Boka</span><strong>Välj ett tidsförslag och få bekräftat vad som händer härnäst.</strong></div>
+    </aside></div></section>
+    <section class="section" id="tjanster"><div class="container"><div class="section-head"><div><h2>Bilservice utan krångel</h2><p class="section-copy">En enkel väg från bilproblem till kontakt med en lokal verkstad.</p></div></div>
+      <div class="feature-grid"><article class="card"><div class="icon" aria-hidden="true">🚗</div><h3>Beskriv problemet</h3><p>Berätta vad som händer med bilen och fyll i de uppgifter verkstaden behöver för att återkomma.</p></article><article class="card"><div class="icon" aria-hidden="true">📨</div><h3>Få ett tidsförslag</h3><p>Verkstäder i området får din förfrågan och kan föreslå en tid de faktiskt har möjlighet att erbjuda.</p></article><article class="card"><div class="icon" aria-hidden="true">✅</div><h3>Bekräfta tiden</h3><p>Godkänn förslaget och invänta verkstadens bekräftelse innan du tar bilen dit.</p></article></div>
+    </div></section>
+    <section class="section" id="process"><div class="container"><div class="section-head"><div><h2>Så fungerar det</h2><p class="section-copy">Tre tydliga steg. Du behåller kontrollen över bokningen hela vägen.</p></div></div>
+      <div class="steps-grid"><article class="card"><div class="step-number">1</div><h3>Skicka en förfrågan</h3><p>Fyll i formuläret med kontaktuppgifter, registreringsnummer, bilmodell och en kort beskrivning av felet.</p></article><article class="card"><div class="step-number">2</div><h3>Välj en tid</h3><p>När en verkstad kan hjälpa dig får du ett tidsförslag att ta ställning till.</p></article><article class="card"><div class="step-number">3</div><h3>Få bokningen bekräftad</h3><p>Godkänn tiden. Verkstaden bekräftar bokningen och tar kontakt om något behöver förtydligas.</p></article></div>
+    </div></section>
+    <section class="section" id="verkstader"><div class="container"><div class="section-head"><div><h2>Verkstäder i ditt område</h2><p class="section-copy">MekFix hjälper dig komma i kontakt med partnerverkstäder i Gävle och Sandviken.</p></div></div>
+      <div class="shop-grid"><article class="card shop-card"><div class="shop-top"><span class="shop-badge">Partnerverkstad</span><h3>Verkstad Norr</h3><div class="shop-location">Gävle med omnejd</div></div><div class="shop-meta"><span>Service &amp; reparation</span><span>Lokalt</span></div></article><article class="card shop-card"><div class="shop-top"><span class="shop-badge">Partnerverkstad</span><h3>Verkstad Centrum</h3><div class="shop-location">Sandviken</div></div><div class="shop-meta"><span>Service &amp; felsökning</span><span>Lokalt</span></div></article><article class="card shop-card"><div class="shop-top"><span class="shop-badge">Partnerverkstad</span><h3>Verkstad Söder</h3><div class="shop-location">Gävle med omnejd</div></div><div class="shop-meta"><span>Bilservice</span><span>Lokalt</span></div></article></div>
+    </div></section>
+    <section class="section"><div class="container"><div class="cta-band"><div><h3>Redo att hitta hjälp?</h3><p>Skicka en förfrågan så kan verkstäder i området återkomma med en tid.</p></div><a href="#form" class="btn btn-secondary">Fyll i formuläret</a></div></div></section>
+    <section class="section" id="kontakt"><div class="container"><div class="card request-card" id="form"><div class="request-card-inner"><h2 style="margin-bottom:8px">Skicka förfrågan</h2><p class="section-copy" style="margin-bottom:22px">Beskriv bilen och vad den behöver hjälp med. Fälten markerade som obligatoriska behöver fyllas i.</p>
+      <form class="request-form" id="requestForm"><div class="field-row"><label>Namn<input type="text" name="name" autocomplete="name" placeholder="Ditt namn" required></label><label>Telefon<input type="tel" name="phone" autocomplete="tel" placeholder="070-000 00 00" required></label></div>
+        <div class="field-row"><label>E-post<input type="email" name="email" autocomplete="email" placeholder="namn@exempel.se" required></label><label>Registreringsnummer<input type="text" name="reg" placeholder="ABC123" required></label></div>
+        <label>Bilmodell<input type="text" name="model" placeholder="Till exempel Volvo V70 2012" required></label>
+        <label>Beskriv vad som är fel<textarea name="fault" placeholder="Berätta vad som händer med bilen..." required></textarea></label>
+        <label class="check"><input type="checkbox" name="consent" required><span>Jag godkänner att mina uppgifter skickas till verkstäder i området för att få ett tidsförslag.</span></label>
+        <button class="btn btn-primary" type="submit" style="width:fit-content">Skicka förfrågan</button><div class="notice" id="formNotice" aria-live="polite" role="status"></div>
+      </form></div></div></div></section>
+  </main>
+  <footer class="footer"><div class="container footer-inner"><a href="#top" class="brand" aria-label="MekFix, till sidans början"><span class="brand-mark">M</span><span>MekFix</span></a><div>© <span id="year"></span> MekFix</div></div></footer>
+  <script>
+    const navToggle=document.querySelector('[data-menu-toggle]');
+    const navLinks=document.getElementById('nav-links');
+    navToggle.addEventListener('click',()=>{const open=navLinks.classList.toggle('open');navToggle.setAttribute('aria-expanded',String(open));navToggle.setAttribute('aria-label',open?'Stäng menyn':'Öppna menyn');});
+    navLinks.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>{navLinks.classList.remove('open');navToggle.setAttribute('aria-expanded','false');navToggle.setAttribute('aria-label','Öppna menyn');}));
+    document.getElementById('year').textContent=new Date().getFullYear();
+    document.getElementById('requestForm').addEventListener('submit',event=>{event.preventDefault();const form=event.currentTarget;const name=new FormData(form).get('name').toString().trim();document.getElementById('formNotice').textContent=`Tack ${name}! Förfrågan har registrerats i den här demon. En riktig webbplats behöver en server för att skicka den till verkstäder.`;form.reset();});
+  </script>
 </body>
 </html>
