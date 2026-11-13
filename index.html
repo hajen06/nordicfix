@@ -43,8 +43,8 @@
     <section class="section" id="process"><div class="container"><div class="section-head"><div><h2>Så fungerar det</h2><p class="section-copy">Tre tydliga steg. Du behåller kontrollen över bokningen hela vägen.</p></div></div>
       <div class="steps-grid"><article class="card"><div class="step-number">1</div><h3>Skicka en förfrågan</h3><p>Fyll i formuläret med kontaktuppgifter, registreringsnummer, bilmodell och en kort beskrivning av felet.</p></article><article class="card"><div class="step-number">2</div><h3>Välj en tid</h3><p>När en verkstad kan hjälpa dig får du ett tidsförslag att ta ställning till.</p></article><article class="card"><div class="step-number">3</div><h3>Få bokningen bekräftad</h3><p>Godkänn tiden. Verkstaden bekräftar bokningen och tar kontakt om något behöver förtydligas.</p></article></div>
     </div></section>
-    <section class="section" id="verkstader"><div class="container"><div class="section-head"><div><h2>Verkstäder i ditt område</h2><p class="section-copy">MekFix hjälper dig komma i kontakt med partnerverkstäder i Gävle och Sandviken.</p></div></div>
-      <div class="shop-grid"><article class="card shop-card"><div class="shop-top"><span class="shop-badge">Partnerverkstad</span><h3>Verkstad Norr</h3><div class="shop-location">Gävle med omnejd</div></div><div class="shop-meta"><span>Service &amp; reparation</span><span>Lokalt</span></div></article><article class="card shop-card"><div class="shop-top"><span class="shop-badge">Partnerverkstad</span><h3>Verkstad Centrum</h3><div class="shop-location">Sandviken</div></div><div class="shop-meta"><span>Service &amp; felsökning</span><span>Lokalt</span></div></article><article class="card shop-card"><div class="shop-top"><span class="shop-badge">Partnerverkstad</span><h3>Verkstad Söder</h3><div class="shop-location">Gävle med omnejd</div></div><div class="shop-meta"><span>Bilservice</span><span>Lokalt</span></div></article></div>
+    <section class="section" id="verkstader"><div class="container"><div class="section-head"><div><h2>Verkstäder i ditt område</h2><p class="section-copy">MekFix hjälper dig komma i kontakt med partnerverkstäder i Gävle och Sandviken. Verkstäderna nedan är exempel tills de första partnerna är på plats.</p></div></div>
+      <div class="shop-grid"><article class="card shop-card"><div class="shop-top"><span class="shop-badge">Exempel</span><h3>Verkstad Norr</h3><div class="shop-location">Gävle med omnejd</div></div><div class="shop-meta"><span>Service &amp; reparation</span><span>Lokalt</span></div></article><article class="card shop-card"><div class="shop-top"><span class="shop-badge">Exempel</span><h3>Verkstad Centrum</h3><div class="shop-location">Sandviken</div></div><div class="shop-meta"><span>Service &amp; felsökning</span><span>Lokalt</span></div></article><article class="card shop-card"><div class="shop-top"><span class="shop-badge">Exempel</span><h3>Verkstad Söder</h3><div class="shop-location">Gävle med omnejd</div></div><div class="shop-meta"><span>Bilservice</span><span>Lokalt</span></div></article></div>
     </div></section>
     <section class="section"><div class="container"><div class="cta-band"><div><h3>Redo att hitta hjälp?</h3><p>Skicka en förfrågan så kan verkstäder i området återkomma med en tid.</p></div><a href="#form" class="btn btn-secondary">Fyll i formuläret</a></div></div></section>
     <section class="section" id="kontakt"><div class="container"><div class="card request-card" id="form"><div class="request-card-inner"><h2 style="margin-bottom:8px">Skicka förfrågan</h2><p class="section-copy" style="margin-bottom:22px">Beskriv bilen och vad den behöver hjälp med. Fälten markerade som obligatoriska behöver fyllas i.</p>
@@ -52,8 +52,15 @@
         <div class="field-row"><label>E-post<input type="email" name="email" autocomplete="email" placeholder="namn@exempel.se" required></label><label>Registreringsnummer<input type="text" name="reg" placeholder="ABC123" required></label></div>
         <label>Bilmodell<input type="text" name="model" placeholder="Till exempel Volvo V70 2012" required></label>
         <label>Beskriv vad som är fel<textarea name="fault" placeholder="Berätta vad som händer med bilen..." required></textarea></label>
-        <label class="check"><input type="checkbox" name="consent" required><span>Jag godkänner att mina uppgifter skickas till verkstäder i området för att få ett tidsförslag.</span></label>
+        <input type="hidden" name="_subject" value="Ny förfrågan från MekFix">
+        <div aria-hidden="true" style="position:absolute;left:-9999px"><label>Lämna tomt<input type="text" name="_gotcha" tabindex="-1" autocomplete="off"></label></div>
+        <label class="check"><input type="checkbox" name="consent" value="Ja" required><span>Jag godkänner att MekFix tar emot mina uppgifter och skickar dem vidare till verkstäder i området för att få ett tidsförslag.</span></label>
         <button class="btn btn-primary" type="submit" style="width:fit-content">Skicka förfrågan</button><div class="notice" id="formNotice" aria-live="polite" role="status"></div>
+        <details style="margin-top:18px;font-size:.92rem;color:var(--muted)"><summary style="cursor:pointer;font-weight:700">Så hanterar vi dina uppgifter</summary>
+          <p>Uppgifterna används bara för att hitta en verkstad som kan ta din bil och för att kontakta dig om en tid. De tas emot av MekFix via formulärtjänsten Formspree och skickas vidare till verkstäder i området.</p>
+          <p>Vi raderar dem när de inte längre behövs, senast efter 90 dagar. Du kan be oss radera dem tidigare. Du kan klaga till Integritetsskyddsmyndigheten (IMY).</p>
+          <p>MekFix förmedlar tider. Verkstaden som tar bilen ansvarar för arbetet.</p>
+        </details>
       </form></div></div></div></section>
   </main>
   <footer class="footer"><div class="container footer-inner"><a href="#top" class="brand" aria-label="MekFix, till sidans början"><span class="brand-mark">M</span><span>MekFix</span></a><div>© <span id="year"></span> MekFix</div></div></footer>
@@ -63,7 +70,29 @@
     navToggle.addEventListener('click',()=>{const open=navLinks.classList.toggle('open');navToggle.setAttribute('aria-expanded',String(open));navToggle.setAttribute('aria-label',open?'Stäng menyn':'Öppna menyn');});
     navLinks.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>{navLinks.classList.remove('open');navToggle.setAttribute('aria-expanded','false');navToggle.setAttribute('aria-label','Öppna menyn');}));
     document.getElementById('year').textContent=new Date().getFullYear();
-    document.getElementById('requestForm').addEventListener('submit',event=>{event.preventDefault();const form=event.currentTarget;const name=new FormData(form).get('name').toString().trim();document.getElementById('formNotice').textContent=`Tack ${name}! Förfrågan har registrerats i den här demon. En riktig webbplats behöver en server för att skicka den till verkstäder.`;form.reset();});
+    const FORMSPREE_URL='https://formspree.io/f/moedjdyk';
+    document.getElementById('requestForm').addEventListener('submit',async event=>{
+      event.preventDefault();
+      const form=event.currentTarget;
+      const notice=document.getElementById('formNotice');
+      const button=form.querySelector('button[type="submit"]');
+      button.disabled=true;
+      notice.textContent='Skickar...';
+      try{
+        const response=await fetch(FORMSPREE_URL,{method:'POST',body:new FormData(form),headers:{'Accept':'application/json'}});
+        if(response.ok){
+          const name=(new FormData(form).get('name')||'').toString().trim();
+          notice.textContent='Tack '+name+'! Din förfrågan är skickad till MekFix. Vi går igenom den och återkommer till dig via e-post och telefon.';
+          form.reset();
+        }else{
+          notice.textContent='Något gick fel och din förfrågan skickades inte. Kontrollera uppgifterna och försök igen om en stund.';
+        }
+      }catch(error){
+        notice.textContent='Något gick fel och din förfrågan skickades inte. Kontrollera din anslutning och försök igen.';
+      }finally{
+        button.disabled=false;
+      }
+    });
   </script>
 </body>
 </html>
