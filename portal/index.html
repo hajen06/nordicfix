@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>MekFix – portal</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#12262d;background:#f2f5f5;font-synthesis:none}*{box-sizing:border-box}body{margin:0;line-height:1.5}.wrap{width:min(980px,calc(100% - 32px));margin:40px auto}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px}.brand{font-size:1.3rem;font-weight:800}.panel,.card{background:white;border:1px solid #d3dddf;border-radius:14px;padding:20px;margin:14px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}label{display:block;font-weight:650;margin:10px 0}input,textarea,select{width:100%;font:inherit;padding:10px;border:1px solid #bac8cb;border-radius:8px;margin-top:4px}textarea{min-height:80px}button{font:inherit;border:0;border-radius:8px;padding:10px 14px;background:#12343b;color:white;font-weight:700;cursor:pointer;margin:4px 6px 4px 0}button.secondary{background:#edf2f2;color:#12262d;border:1px solid #d3dddf}button:disabled{opacity:.55;cursor:wait}.muted{color:#4b6068}.status{padding:10px 12px;background:#fff8df;border-left:4px solid #f2b705;border-radius:6px;margin:14px 0}table{width:100%;border-collapse:collapse;font-size:.92rem}td,th{text-align:left;padding:9px;border-bottom:1px solid #d3dddf;vertical-align:top}.scroll{overflow-x:auto}.hidden{display:none!important}.danger{color:#8e2a20}.small{font-size:.88rem}a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #f2b705;outline-offset:2px}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="top"><div class="brand">🟨 MekFix <span class="muted">portal</span></div><div id="session-actions" class="hidden"><span id="identity" class="muted"></span> <button id="signout" class="secondary" type="button">Logga ut</button></div></header>
+    <div id="message" class="status" role="status" aria-live="polite">Konfigurerar portalen…</div>
+    <section id="config-warning" class="panel hidden"><h1>Supabase behöver konfigureras</h1><p>Portalen är ännu inte kopplad till ditt Supabase-projekt. Följ <code>docs/mvp-portal-setup.md</code> och lägg endast in projektets URL och publishable/anon-nyckel. Lägg aldrig in service-role-nyckeln här.</p></section>
+    <section id="login-panel" class="panel hidden"><h1>Logga in</h1><p class="muted">Endast konton som administratören har bjudit in kan använda portalen.</p><form id="login-form"><label>E-post<input name="email" type="email" autocomplete="username" required></label><label>Lösenord<input name="password" type="password" autocomplete="current-password" required></label><button type="submit">Logga in</button></form></section>
+    <section id="app-panel" class="hidden"></section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Publishable/anon key is safe to expose only because all tables use RLS.
+    // Never place a service-role/secret key in a browser page.
+    const SUPABASE_URL = 'SUPABASE_URL_HERE';
+    const SUPABASE_ANON_KEY = 'SUPABASE_ANON_KEY_HERE';
+    const $ = (selector, root=document) => root.querySelector(selector);
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const msg = (text, error=false) => {const box=$('#message');box.textContent=text;box.classList.toggle('danger',error);};
+    const configured = !SUPABASE_URL.includes('_HERE') && !SUPABASE_ANON_KEY.includes('_HERE');
+    let db=null;
+    if(configured && window.supabase) db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    if(!configured || !db){$('#config-warning').classList.remove('hidden');msg('Portalen väntar på Supabase-konfiguration.',true);}
+
+    const fmtDate = value => value ? new Date(value).toLocaleString('sv-SE',{dateStyle:'medium',timeStyle:'short'}) : '–';
+    async function refresh(){
+      if(!db)return;
+      const {data:{session}}=await db.auth.getSession();
+      $('#login-panel').classList.toggle('hidden',!!session);
+      $('#app-panel').classList.add('hidden');
+      $('#session-actions').classList.toggle('hidden',!session);
+      if(!session){msg('Logga in med ett konto som administratören har bjudit in.');return;}
+      $('#identity').textContent=session.user.email||'';
+      const {data:profile,error}=await db.from('profiles').select('role,workshop_id').eq('id',session.user.id).maybeSingle();
+      if(error||!profile){msg('Kunde inte läsa användarrollen. Kontrollera migration och RLS.',true);return;}
+      $('#app-panel').classList.remove('hidden');
+      if(profile.role==='admin') await renderAdmin();
+      else if(profile.role==='partner'&&profile.workshop_id) await renderPartner(profile.workshop_id);
+      else {$('#app-panel').innerHTML='<section class="panel"><h1>Kontot är inte kopplat till en verkstad</h1><p>Be MekFix-administratören kontrollera kontot och partnerkopplingen.</p></section>';msg('Inloggad, men inget partnerkonto är kopplat.',true);}
+    }
+
+    async function renderAdmin(){
+      msg('Administratörsinloggad. Dataåtkomst kontrolleras även av Supabase RLS.');
+      const [appsResult,shopsResult]=await Promise.all([
+        db.from('partner_applications').select('*').order('created_at',{ascending:false}),
+        db.from('workshops').select('*').order('created_at',{ascending:false})
+      ]);
+      if(appsResult.error||shopsResult.error){msg('Kunde inte läsa adminuppgifter. Kontrollera att SQL-migrationen är installerad.',true);return;}
+      const apps=appsResult.data||[],shops=shopsResult.data||[];
+      $('#app-panel').innerHTML=`<section class="panel"><h1>Administration</h1><p class="muted">Hantera inkomna partneransökningar och godkända verkstäder. Endast aktiva verkstäder bör få kundförfrågningar.</p></section>
+        <section class="panel"><h2>Partneransökningar (${apps.length})</h2>${apps.length?`<div class="scroll"><table><thead><tr><th>Företag</th><th>Kontakt</th><th>Plats</th><th>Försäkring</th><th>Status</th><th>Åtgärd</th></tr></thead><tbody>${apps.map(a=>`<tr><td>${esc(a.company_name)}<br><span class="small muted">Org.nr ${esc(a.organization_number)}</span></td><td>${esc(a.contact_name)}<br>${esc(a.email)}<br>${esc(a.phone)}</td><td>${esc(a.street_address)}, ${esc(a.postal_code)} ${esc(a.city)}</td><td>${esc(a.insurance_company)}<br>Gäller till ${esc(a.insurance_valid_until||'ej angivet')}</td><td>${esc(a.status)}</td><td>${a.status==='pending'||a.status==='reviewing'?`<button data-review="${esc(a.id)}" data-state="reviewing" class="secondary">Granska</button><button data-review="${esc(a.id)}" data-state="approved">Godkänn ansökan</button><button data-review="${esc(a.id)}" data-state="rejected" class="secondary">Avslå</button>`:'–'}</td></tr>`).join('')}</tbody></table></div>`:'<p>Inga ansökningar ännu.</p>'}</section>
+        <section class="panel"><h2>Lägg till verkstad manuellt</h2><p class="muted small">Skapa endast poster efter att partnern och nödvändiga uppgifter har granskats. Partnerkonton bjuds in och kopplas separat enligt setup-guiden.</p><form id="workshop-form"><div class="grid"><label>Företagsnamn<input name="company_name" required maxlength="160"></label><label>Organisationsnummer<input name="organization_number" required maxlength="24"></label><label>E-post<input name="email" type="email" required maxlength="254"></label><label>Telefon<input name="phone" required maxlength="40"></label><label>Kundtelefon<input name="customer_phone" required maxlength="40"></label><label>Jourtelefon (valfritt)<input name="emergency_phone" maxlength="40"></label><label>Gatuadress<input name="street_address" required maxlength="240"></label><label>Postnummer<input name="postal_code" required maxlength="16"></label><label>Ort<input name="city" required maxlength="120"></label><label>Försäkringsbolag<input name="insurance_company" maxlength="200"></label><label>Försäkring giltig till<input name="insurance_valid_until" type="date"></label><label>Latitud<input name="latitude" type="number" step="any" min="-90" max="90"></label><label>Longitud<input name="longitude" type="number" step="any" min="-180" max="180"></label></div><label>Tjänster<textarea name="services" maxlength="3000"></textarea></label><label><input name="active" type="checkbox" style="width:auto"> Aktivera verkstaden efter granskning</label><button type="submit">Skapa verkstad</button></form></section>
+        <section class="panel"><h2>Verkstäder (${shops.length})</h2>${shops.length?`<div class="scroll"><table><thead><tr><th>Företag</th><th>Kontakt</th><th>Ort</th><th>Status</th><th>Position</th><th>Åtgärd</th></tr></thead><tbody>${shops.map(w=>`<tr><td>${esc(w.company_name)}<br><span class="small muted">${esc(w.organization_number)}</span></td><td>${esc(w.email)}<br>${esc(w.phone)}</td><td>${esc(w.city)}</td><td>${w.active?'Aktiv':'Pausad'}</td><td>${w.latitude??'–'}, ${w.longitude??'–'}</td><td><button class="secondary" data-toggle-workshop="${esc(w.id)}" data-active="${!w.active}">${w.active?'Pausa':'Aktivera'}</button></td></tr>`).join('')}</tbody></table></div>`:'<p>Inga verkstäder registrerade.</p>'}</section>`;
+    }
+
+    async function renderPartner(workshopId){
+      const [workshopResult,slotsResult]=await Promise.all([
+        db.from('workshops').select('company_name,city,active,services').eq('id',workshopId).maybeSingle(),
+        db.from('availability_slots').select('id,starts_at,ends_at,note').eq('workshop_id',workshopId).gte('starts_at',new Date().toISOString()).order('starts_at',{ascending:true})
+      ]);
+      if(workshopResult.error||slotsResult.error||!workshopResult.data){msg('Kunde inte läsa partneruppgifter. Kontrollera att kontot är kopplat och verkstaden aktiv.',true);return;}
+      const w=workshopResult.data,slots=slotsResult.data||[];
+      $('#app-panel').innerHTML=`<section class="panel"><h1>Partnerportal</h1><p><strong>${esc(w.company_name)}</strong> · ${esc(w.city)} · ${w.active?'Aktiv partner':'Pausad'}</p><p class="muted">${esc(w.services||'')}</p><p class="small muted">I denna första inkrement kan du hantera nästa lediga tider. Kundärenden och matchning är ännu inte anslutna.</p></section>
+        <section class="panel"><h2>Lägg till ledig tid</h2><form id="slot-form"><label>Datum och tid<input name="starts_at" type="datetime-local" required></label><label>Sluttid (valfritt)<input name="ends_at" type="datetime-local"></label><label>Notering (valfritt)<input name="note" maxlength="500" placeholder="Exempel: felsökning eller service"></label><button type="submit">Spara ledig tid</button></form></section>
+        <section class="panel"><h2>Kommande lediga tider</h2>${slots.length?`<div class="scroll"><table><thead><tr><th>Start</th><th>Slut</th><th>Notering</th><th></th></tr></thead><tbody>${slots.map(s=>`<tr><td>${esc(fmtDate(s.starts_at))}</td><td>${esc(fmtDate(s.ends_at))}</td><td>${esc(s.note||'')}</td><td><button class="secondary" data-delete-slot="${esc(s.id)}">Ta bort</button></td></tr>`).join('')}</tbody></table></div>`:'<p>Inga kommande tider registrerade.</p>'}</section>`;
+    }
+
+    $('#login-form').addEventListener('submit',async event=>{event.preventDefault();if(!db)return;const data=new FormData(event.currentTarget);msg('Loggar in…');const {error}=await db.auth.signInWithPassword({email:data.get('email'),password:data.get('password')});if(error){msg('Inloggningen misslyckades. Kontrollera uppgifterna eller kontakta administratören.',true);return;}event.currentTarget.reset();await refresh();});
+    $('#signout').addEventListener('click',async()=>{if(db)await db.auth.signOut();await refresh();});
+    $('#app-panel').addEventListener('submit',async event=>{
+      event.preventDefault();if(!db)return;const form=event.target,data=new FormData(form);
+      if(form.id==='workshop-form'){
+        const row={company_name:data.get('company_name').trim(),organization_number:data.get('organization_number').trim(),email:data.get('email').trim(),phone:data.get('phone').trim(),customer_phone:data.get('customer_phone').trim(),emergency_phone:data.get('emergency_phone').trim()||null,street_address:data.get('street_address').trim(),postal_code:data.get('postal_code').trim(),city:data.get('city').trim(),insurance_company:data.get('insurance_company').trim()||null,insurance_valid_until:data.get('insurance_valid_until')||null,latitude:data.get('latitude')?Number(data.get('latitude')):null,longitude:data.get('longitude')?Number(data.get('longitude')):null,services:data.get('services').trim(),active:data.has('active')};
+        const {error}=await db.from('workshops').insert(row);if(error){msg('Kunde inte skapa verkstad. Kontrollera fälten och databasinställningen.',true);return;}msg('Verkstaden skapades. Partnerkonto kopplas separat enligt setup-guiden.');await refresh();
+      }
+      if(form.id==='slot-form'){
+        const {data:{user}}=await db.auth.getUser();const {data:profile}=await db.from('profiles').select('workshop_id').eq('id',user.id).single();
+        const start=new Date(data.get('starts_at'));const end=data.get('ends_at')?new Date(data.get('ends_at')):null;
+        if(Number.isNaN(start.getTime())||(end&&end<=start)){msg('Kontrollera datum och tider.',true);return;}
+        const {error}=await db.from('availability_slots').insert({workshop_id:profile.workshop_id,starts_at:start.toISOString(),ends_at:end?.toISOString()||null,note:data.get('note').trim()||null});if(error){msg('Tiden kunde inte sparas. Kontrollera att verkstaden är kopplad till kontot.',true);return;}msg('Ledig tid sparad.');await refresh();
+      }
+    });
+    $('#app-panel').addEventListener('click',async event=>{
+      const button=event.target.closest('button');if(!button||!db)return;
+      if(button.dataset.review){const status=button.dataset.state;const {error}=await db.from('partner_applications').update({status,reviewed_at:new Date().toISOString()}).eq('id',button.dataset.review);if(error){msg('Ansökan kunde inte uppdateras.',true);return;}msg('Ansökans status uppdaterad. Godkännande skapar inte automatiskt ett partnerkonto.');await refresh();}
+      if(button.dataset.toggleWorkshop){const {error}=await db.from('workshops').update({active:button.dataset.active==='true',updated_at:new Date().toISOString()}).eq('id',button.dataset.toggleWorkshop);if(error){msg('Verkstadens status kunde inte ändras.',true);return;}msg('Verkstadens status uppdaterad.');await refresh();}
+      if(button.dataset.deleteSlot){const {error}=await db.from('availability_slots').delete().eq('id',button.dataset.deleteSlot);if(error){msg('Tiden kunde inte tas bort.',true);return;}msg('Ledig tid borttagen.');await refresh();}
+    });
+    if(db){db.auth.onAuthStateChange(()=>{setTimeout(refresh,0);});refresh();}
+  </script>
+</body>
+</html>
