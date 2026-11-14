@@ -1,73 +1,81 @@
-# MekFix MVP portal – setup guide
+# MekFix MVP – Supabase och portalens start
 
-This repository's public site is a static GitHub Pages site. This first MVP increment adds a protected admin/partner portal and a Supabase database foundation. GitHub Pages hosts the portal UI; Supabase Auth and Row Level Security protect data. The Supabase project must be configured by the owner before the portal can sign in.
+Portalens kod finns på `portal/index.html`; partneransökan finns på `partner/index.html`. GitHub Pages kan publicera dessa statiska sidor, mutta data och inloggning skyddas av Supabase Auth och Row Level Security (RLS). Följ stegen nedan innan riktiga uppgifter används.
 
-## Included in this increment
+## Vad som fungerar i denna MVP-grund
 
-- `portal/index.html`: sign-in page and role-based starter dashboard.
-- `supabase/migrations/202611140001_mekfix_mvp.sql`: profiles, partner applications, private workshops, availability slots, and role-based RLS policies.
-- Admins can review partner applications and create/activate partner workshop records.
-- Partners can see their own workshop profile and create/view/delete availability slots.
-- Public visitors may submit a partner application; they cannot read application records.
+- Privat inloggning för inbjudna administratörs- och partnerkonton.
+- Admin kan läsa partneransökningar, granska/godkänna/avslå dem, lägga till verkstäder och pausa/aktivera verkstäder.
+- Godkännande skapar en **inaktiv** verkstadspost; aktivering är ett separat administratörsbeslut.
+- Partner kan läsa sin egen verkstadsprofil och hantera sina egna lediga tider.
+- Publik partneransökan sparar uppgifter i Supabase; endast administratörer får läsa eller granska dem.
 
-This increment is not yet a full customer request/matching/bookings system. It does not geocode addresses, calculate the 30 km radius, send partner notifications, or create customer bookings. Those features need a server-side service and separate database migrations; do not treat the current static Formspree flow as implementing them.
+Detta är ännu **inte** ett fullständigt bokningssystem: inga kundärenden, kund- eller verkstadsmail, geokodning, 30 km-matchning, automatisk kalenderkoppling eller betalningar. Den publika Formspree-kundformen är fortfarande separat från portalen. Lägg inte in riktiga kunduppgifter i test innan dataskydd, åtkomst och drift är granskade.
 
-## 1. Create/configure Supabase
+## 1. Skapa Supabase-projektet och kör databasen
 
-1. Create a Supabase project and keep its database password and service-role key private.
-2. In **SQL Editor**, run the migration file from this repository.
-3. In **Authentication → Providers / Sign-in**, disable public user sign-ups. Create accounts only by invitation from the Supabase dashboard.
-4. Copy the project URL and the **publishable/anon key**. These two values are intended for browser configuration when Row Level Security is enabled. Never use a `service_role` or secret key in this HTML file.
-
-## 2. Create the first admin
-
-1. In Supabase **Authentication → Users**, invite the owner's email address and complete the invitation/sign-in.
-2. In SQL Editor, replace the example email and run the following, after confirming the user is the intended owner:
+1. Skapa ett Supabase-projekt och spara databaslösenordet säkert.
+2. Supabase → **SQL Editor**: kör först hela `supabase/migrations/202611140001_mekfix_mvp.sql` och därefter `supabase/migrations/202611140002_partner_review.sql`.
+3. Auth → **Sign-in / Providers**: stäng av offentlig registrering. Använd endast inbjudningar.
+4. Auth → Users: bjud in ägarens konto. När det är skapat, kör SQL nedan efter att du kontrollerat rätt e-post. Det ska ändra exakt en profil:
 
 ```sql
 update public.profiles p
 set role = 'admin', workshop_id = null
 from auth.users u
 where p.id = u.id
-  and lower(u.email) = lower('OWNER_EMAIL_HERE');
+  and lower(u.email) = lower('DIN_EPOST_HÄR');
 ```
 
-3. Confirm exactly one row changed. Do not make an admin account publicly self-registerable. Add MFA to the owner account.
+Aktivera MFA för administratören. Publicera aldrig service-role/secret-nyckeln.
 
-## 3. Configure and publish the portal
+## 2. Konfigurera Supabase-anslutningen
 
-1. Open `portal/index.html` and replace `SUPABASE_URL_HERE` and `SUPABASE_ANON_KEY_HERE` with the project URL and publishable/anon key.
-2. Commit/push the update to `main`. With GitHub Pages configured for `main` and `/(root)`, the portal will be at `https://hajen06.github.io/nordicfix/portal/`.
-3. Sign in with the invited admin account. The role and all data access are checked by Supabase RLS, not by hiding the page.
+Öppna `portal/config.js` och sätt:
 
-The portal file is not connected to the public contact page, and the admin URL is not a security boundary. Database policies are the security boundary. If the project URL/key are not configured, the portal intentionally shows a setup warning.
+```js
+window.MEKFIX_SUPABASE_CONFIG = {
+  url: 'https://DITT-PROJEKT.supabase.co',
+  anonKey: 'DIN_PUBLISHABLE_ELLER_ANON_KEY'
+};
+```
 
-## 4. Add a partner
+Project URL och publishable/anon key kan finnas i browsern om RLS är korrekt aktiverat. **Använd aldrig `service_role` eller secret key i denna fil.** Ändra den lokalt/GitHub-editorn och publicera i ditt repo. Om repot är publikt är det normalt att publishable/anon key syns; säkerheten ligger i RLS-policyerna.
 
-1. Create/invite the partner's Auth user from Supabase Auth. Do not enable public sign-up.
-2. In the admin portal, use **Lägg till verkstad** to create the approved workshop entry.
-3. In SQL Editor, link the invited account to its workshop (use exact verified email and workshop UUID):
+## 3. Öppna portalen
+
+Med GitHub Pages källa `main` och `/ (root)`:
+- Admin/partnerportal: `https://hajen06.github.io/nordicfix/portal/`
+- Partneransökan: `https://hajen06.github.io/nordicfix/partner/`
+
+Kontrollera Settings → Pages att publicering är aktiv. GitHub Pages kan behöva några minuter efter en commit.
+
+## 4. Granska en ansökan och ge partnerkonto
+
+1. Verkstaden skickar ansökan på partnerlänken. Ansökan blir inte automatiskt godkänd eller aktiv.
+2. Logga in som admin i `/portal/`, granska företags-/försäkringsuppgifter och tryck **Godkänn ansökan**. Detta skapar en inaktiv verkstad.
+3. Bjud in verkstadens e-post i Supabase Auth → Users. Offentlig sign-up ska fortfarande vara avstängd.
+4. I adminlistan, hitta verkstadens UUID (vid behov via Supabase Table Editor → workshops). Koppla den inbjudna profilen i SQL Editor:
 
 ```sql
 update public.profiles p
-set role = 'partner', workshop_id = 'WORKSHOP_UUID_HERE'
+set role = 'partner', workshop_id = 'VERKSTADENS-UUID'
 from auth.users u
 where p.id = u.id
-  and lower(u.email) = lower('PARTNER_EMAIL_HERE');
+  and lower(u.email) = lower('PARTNERNS_VERIFIERADE_EPOST');
 ```
 
-4. Set the workshop active only after checking the partnership and insurance details. Do not collect insurance files in this MVP; the current schema stores insurer and expiry metadata only.
+5. Aktivera verkstaden i adminpanelen först efter att kontot, uppgifterna och partneravtalet är kontrollerade. Partnern kan därefter logga in och lägga in nästa lediga tider.
 
-## 5. Partner applications
+## 5. Säkerhets- och driftskontroll före riktiga personuppgifter
 
-A public application form and spam controls should be wired to the `partner_applications` table in the next increment. The database permits inserts only and restricts reads/review to admins. Until that form is added, receive applications via the existing contact channel and review them manually.
+- Testa med anon, admin, partner A och partner B: ansökningar privata, adminfunktioner admin-only, partners ser bara egen verkstad/tider.
+- Kontrollera Supabase Auth redirect URLs och lägg till publicerad portal-URL.
+- Använd HTTPS; konfigurera MFA, backup, radering/retention och incidentrutin.
+- Kontrollera formulärens integritetstext, partneravtal och ansvar/försäkringskrav juridiskt. Denna prototyp ska inte uppfattas som juridiskt godkänd.
+- CDN-scriptet använder Supabase JS v2. För högre driftssäkerhet bör det senare låsas till en testad versionsadress.
+- Adminens webbadress är inte hemlig. Skyddet är Supabase-inloggning plus RLS; gömda knappar/URL är inte säkerhet.
 
-## Security/operations checklist before using real customer data
+## 6. Nästa tekniska etapp
 
-- Verify RLS is enabled on every table; test as anon, admin, partner A, and partner B.
-- Never commit Supabase service-role/secret keys, passwords, customer exports, or insurance documents.
-- Keep sign-up disabled; use invitations and revoke accounts when a partner leaves.
-- Add MFA for administrators, backups, audit/incident procedures, and data retention/deletion rules.
-- Obtain privacy/partner terms and have the data handling and liability wording reviewed before collecting sensitive or customer data.
-- Configure a custom production domain and HTTPS after verifying DNS.
-- The current starter portal does not implement customer cases, matching, payments, email notifications, or schedule conflict protection.
+För att koppla kundflödet krävs ytterligare backend och databasdelar: kundärenden, geokodning, server-side radie-matchning, matchning bara till aktiva partners, tillgänglighets-/bokningslås, mejlutskick och statusflöde. Dessa är avsiktligt inte låtsas-implementerade i denna portalgrund.

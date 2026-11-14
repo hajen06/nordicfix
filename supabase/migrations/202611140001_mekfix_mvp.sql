@@ -1,8 +1,6 @@
 -- MekFix MVP foundation for Supabase.
--- Run once in the Supabase SQL Editor. Never put the service-role key in the browser.
-
+-- Run in Supabase SQL Editor. Never put the service-role key in browser code.
 create extension if not exists pgcrypto;
-
 create type public.mekfix_role as enum ('admin', 'partner');
 create type public.application_status as enum ('pending', 'reviewing', 'approved', 'rejected');
 
@@ -57,8 +55,7 @@ create table public.workshops (
   updated_at timestamptz not null default now()
 );
 
-alter table public.profiles
-  add constraint profiles_workshop_id_fkey
+alter table public.profiles add constraint profiles_workshop_id_fkey
   foreign key (workshop_id) references public.workshops(id) on delete set null;
 
 create table public.availability_slots (
@@ -71,57 +68,31 @@ create table public.availability_slots (
   check (ends_at is null or ends_at > starts_at)
 );
 
-create index partner_applications_status_created_idx
-  on public.partner_applications(status, created_at desc);
+create index partner_applications_status_created_idx on public.partner_applications(status, created_at desc);
 create index workshops_active_city_idx on public.workshops(active, city);
-create index availability_slots_workshop_time_idx
-  on public.availability_slots(workshop_id, starts_at) where starts_at > now();
+-- PostgreSQL partial-index predicates must be immutable; do not use now() here.
+create index availability_slots_workshop_time_idx on public.availability_slots(workshop_id, starts_at);
 create index profiles_workshop_idx on public.profiles(workshop_id);
 
--- Automatically create a least-privileged partner profile when an invited auth
--- user is created. Admins must be assigned explicitly by an existing project owner.
 create function public.handle_new_auth_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
+returns trigger language plpgsql security definer set search_path = '' as $$
 begin
   insert into public.profiles (id, role) values (new.id, 'partner');
   return new;
 end;
 $$;
-
-create trigger on_auth_user_created
-  after insert on auth.users
+create trigger on_auth_user_created after insert on auth.users
   for each row execute procedure public.handle_new_auth_user();
 
--- SECURITY DEFINER helpers avoid recursive RLS when policies inspect profiles.
 create function public.is_mekfix_admin()
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select exists (
-    select 1 from public.profiles p
-    where p.id = (select auth.uid()) and p.role = 'admin'
-  );
+returns boolean language sql stable security definer set search_path = '' as $$
+  select exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin');
 $$;
-
 create function public.current_workshop_id()
-returns uuid
-language sql
-stable
-security definer
-set search_path = ''
-as $$
+returns uuid language sql stable security definer set search_path = '' as $$
   select p.workshop_id from public.profiles p
-  where p.id = (select auth.uid()) and p.role = 'partner'
-  limit 1;
+  where p.id = (select auth.uid()) and p.role = 'partner' limit 1;
 $$;
-
 revoke all on function public.is_mekfix_admin() from public;
 revoke all on function public.current_workshop_id() from public;
 grant execute on function public.is_mekfix_admin() to authenticated;
@@ -132,54 +103,35 @@ alter table public.partner_applications enable row level security;
 alter table public.workshops enable row level security;
 alter table public.availability_slots enable row level security;
 
--- Profiles: users can read their own role; only admins can manage assignments.
 create policy "profile self read or admin read" on public.profiles
-  for select to authenticated
-  using (id = (select auth.uid()) or (select public.is_mekfix_admin()));
+  for select to authenticated using (id = (select auth.uid()) or (select public.is_mekfix_admin()));
 create policy "admin manages profiles" on public.profiles
-  for all to authenticated
-  using ((select public.is_mekfix_admin()))
-  with check ((select public.is_mekfix_admin()));
+  for all to authenticated using ((select public.is_mekfix_admin())) with check ((select public.is_mekfix_admin()));
 
--- Anyone may submit an application; only administrators may read/review it.
 create policy "public submits partner application" on public.partner_applications
   for insert to anon, authenticated
   with check (status = 'pending' and admin_notes is null and reviewed_at is null);
 create policy "admin reads applications" on public.partner_applications
-  for select to authenticated
-  using ((select public.is_mekfix_admin()));
+  for select to authenticated using ((select public.is_mekfix_admin()));
 create policy "admin reviews applications" on public.partner_applications
-  for update to authenticated
-  using ((select public.is_mekfix_admin()))
-  with check ((select public.is_mekfix_admin()));
+  for update to authenticated using ((select public.is_mekfix_admin())) with check ((select public.is_mekfix_admin()));
 
--- Workshop data is private by default. A partner reads only its own profile;
--- public workshop listings can be built later using a deliberately limited view.
 create policy "admin manages workshops" on public.workshops
-  for all to authenticated
-  using ((select public.is_mekfix_admin()))
-  with check ((select public.is_mekfix_admin()));
+  for all to authenticated using ((select public.is_mekfix_admin())) with check ((select public.is_mekfix_admin()));
 create policy "partner reads own workshop" on public.workshops
-  for select to authenticated
-  using (id = (select public.current_workshop_id()) and active = true);
+  for select to authenticated using (id = (select public.current_workshop_id()));
 
 create policy "admin manages availability" on public.availability_slots
-  for all to authenticated
-  using ((select public.is_mekfix_admin()))
-  with check ((select public.is_mekfix_admin()));
+  for all to authenticated using ((select public.is_mekfix_admin())) with check ((select public.is_mekfix_admin()));
 create policy "partner reads own availability" on public.availability_slots
-  for select to authenticated
-  using (workshop_id = (select public.current_workshop_id()));
+  for select to authenticated using (workshop_id = (select public.current_workshop_id()));
 create policy "partner adds own availability" on public.availability_slots
-  for insert to authenticated
-  with check (workshop_id = (select public.current_workshop_id()));
+  for insert to authenticated with check (workshop_id = (select public.current_workshop_id()));
 create policy "partner updates own availability" on public.availability_slots
-  for update to authenticated
-  using (workshop_id = (select public.current_workshop_id()))
+  for update to authenticated using (workshop_id = (select public.current_workshop_id()))
   with check (workshop_id = (select public.current_workshop_id()));
 create policy "partner deletes own availability" on public.availability_slots
-  for delete to authenticated
-  using (workshop_id = (select public.current_workshop_id()));
+  for delete to authenticated using (workshop_id = (select public.current_workshop_id()));
 
 grant select on public.profiles to authenticated;
 grant select, insert, update, delete on public.partner_applications to authenticated;
@@ -187,6 +139,4 @@ grant insert on public.partner_applications to anon;
 grant select, insert, update, delete on public.workshops to authenticated;
 grant select, insert, update, delete on public.availability_slots to authenticated;
 
--- NOTE: Do not grant the service-role key to browser code. Do not expose private
--- workshop columns through a public view. Future public listing/API must return
--- only explicitly approved public fields and use server-side radius matching.
+-- Do not expose private workshop columns publicly or put a service-role key in browser code.

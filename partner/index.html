@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow"><title>MekFix – partnerportal</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#12262d;background:#f2f5f5}*{box-sizing:border-box}body{margin:0;line-height:1.55}.wrap{width:min(760px,calc(100% - 32px));margin:36px auto}.brand{font-weight:850;font-size:1.3rem;margin-bottom:22px}.card{background:#fff;border:1px solid #d3dddf;border-radius:16px;padding:24px;box-shadow:0 12px 32px #12262d0b}h1{line-height:1.15}p{color:#4b6068}label{display:block;font-weight:650;margin:12px 0}input,textarea{width:100%;font:inherit;padding:11px;border:1px solid #bac8cb;border-radius:9px;margin-top:5px}textarea{min-height:100px}button{font:inherit;font-weight:750;border:0;border-radius:9px;padding:12px 18px;background:#12343b;color:white;cursor:pointer}button:disabled{opacity:.6;cursor:wait}.check{display:flex;gap:10px;align-items:flex-start;font-weight:400;color:#4b6068}.check input{width:18px;margin-top:4px}.msg{min-height:24px;margin-top:14px;font-weight:700;color:#1f7a5d}.warn{color:#8e2a20}a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #f2b705;outline-offset:2px}.small{font-size:.88rem}
+  </style>
+</head>
+<body><main class="wrap">
+  <div class="brand">🟨 MekFix · partneransökan</div>
+  <section class="card"><h1>Bli partnerverkstad</h1><p>Skicka en ansökan till MekFix. Ansökan granskas innan verkstaden eventuellt godkänns och aktiveras. Skicka inte försäkringsdokument via detta formulär.</p>
+    <div id="setup" class="msg warn" role="status" aria-live="polite"></div>
+    <form id="application-form">
+      <label>Företagets namn<input name="company_name" required minlength="2" maxlength="160" autocomplete="organization"></label>
+      <label>Organisationsnummer<input name="organization_number" required minlength="6" maxlength="24"></label>
+      <label>Kontaktperson<input name="contact_name" required minlength="2" maxlength="160" autocomplete="name"></label>
+      <label>E-post<input name="email" type="email" required maxlength="254" autocomplete="email"></label>
+      <label>Direkttelefon<input name="phone" type="tel" required maxlength="40" autocomplete="tel"></label>
+      <label>Telefon som kunder kan ringa<input name="customer_phone" type="tel" required maxlength="40"></label>
+      <label>Journummer (valfritt)<input name="emergency_phone" type="tel" maxlength="40"></label>
+      <label>Besöksadress<input name="street_address" required maxlength="240" autocomplete="street-address"></label>
+      <label>Postnummer<input name="postal_code" required maxlength="16" autocomplete="postal-code"></label>
+      <label>Ort<input name="city" required minlength="2" maxlength="120" autocomplete="address-level2"></label>
+      <label>Vilka tjänster erbjuder ni?<textarea name="services" required maxlength="3000"></textarea></label>
+      <label>Ansvarsförsäkringens bolag<input name="insurance_company" required maxlength="200"></label>
+      <label>Försäkringen gäller till (om känt)<input name="insurance_valid_until" type="date"></label>
+      <label class="check"><input type="checkbox" name="responsibility_acknowledged" value="yes" required><span>Vi ansvarar själva för vår felsökning, offert, reparation, garanti, kundkontakt och hantering av kundens fordon enligt separat partneravtal.</span></label>
+      <label class="check"><input type="checkbox" name="privacy_acknowledged" value="yes" required><span>Jag har behörighet att skicka företagets uppgifter och godkänner att MekFix använder dem för att behandla partneransökan.</span></label>
+      <button id="submit" type="submit">Skicka ansökan</button><div id="result" class="msg" role="status" aria-live="polite"></div>
+      <p class="small">Ansökan är inte ett godkännande eller ett avtal. MekFix kontaktar er efter granskning.</p>
+    </form>
+  </section>
+</main>
+<script src="./config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const cfg=window.MEKFIX_SUPABASE_CONFIG||{};
+  const ready=cfg.url&&cfg.anonKey&&!cfg.url.includes('_HERE')&&!cfg.anonKey.includes('_HERE')&&window.supabase;
+  const form=document.querySelector('#application-form'),setup=document.querySelector('#setup'),result=document.querySelector('#result'),button=document.querySelector('#submit');
+  let client=null;
+  if(ready){client=window.supabase.createClient(cfg.url,cfg.anonKey);setup.textContent='';}
+  else{setup.textContent='Ansökningsformuläret är inte aktiverat ännu. MekFix behöver konfigurera Supabase först.';button.disabled=true;}
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();if(!client)return;
+    button.disabled=true;result.textContent='Skickar ansökan…';
+    const values=new FormData(form);
+    const row={company_name:values.get('company_name').trim(),organization_number:values.get('organization_number').trim(),contact_name:values.get('contact_name').trim(),email:values.get('email').trim(),phone:values.get('phone').trim(),customer_phone:values.get('customer_phone').trim(),emergency_phone:values.get('emergency_phone').trim()||null,street_address:values.get('street_address').trim(),postal_code:values.get('postal_code').trim(),city:values.get('city').trim(),services:values.get('services').trim(),insurance_company:values.get('insurance_company').trim(),insurance_valid_until:values.get('insurance_valid_until')||null,responsibility_acknowledged:values.has('responsibility_acknowledged'),privacy_acknowledged:values.has('privacy_acknowledged')};
+    const {error}=await client.from('partner_applications').insert(row);
+    if(error){result.textContent='Ansökan kunde inte skickas. Kontrollera uppgifterna och försök igen senare.';result.classList.add('warn');}
+    else{form.reset();result.classList.remove('warn');result.textContent='Tack! Ansökan är mottagen för granskning. Den är inte aktiv förrän MekFix har godkänt den.';}
+    button.disabled=false;
+  });
+</script></body></html>
